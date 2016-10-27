@@ -70,6 +70,13 @@ class MissingPageRouter
             $redirectUrl = str_replace("{{$key}}", $value, $redirectUrl);
         }
 
-        return $redirectUrl;
+        return $redirectUrl . $this->appendQueryStringToUrl();
+    }
+
+    protected function appendQueryStringToUrl(): string
+    {
+        $queryString = $this->router->getCurrentRequest()->getQueryString();
+
+        return ($queryString ? '?' . $queryString : '');
     }
 }
