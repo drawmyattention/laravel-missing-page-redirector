@@ -106,6 +106,24 @@ Optional parameters are also... an option:
     ],
 ```
 
+It is also possible to optionally specify which http response code is used when performing the redirect. By default the ```301 Moved Permanently``` response code is set. You may override this using the following syntax:   
+
+```php
+    'redirects' => [
+       'old-page' => ['/new-page', 302],
+    ],
+```
+
+If your missing page uses query strings, these are automatically supported without any additional configuration:
+
+```php
+    'redirects' => [
+       '/old-search' => '/new-search',
+    ],
+```
+
+When accessing ```/old-search?query=FooBar```, the request will automatically be redirected to ```/new-search?query=FooBar```
+
 ## Creating your own redirector
 
 By default this package will use the `Spatie\MissingPageRedirector\Redirector\ConfigurationRedirector` which will get its redirects from the config file. If you want to use another source for your redirects (for example a database) you can create your own redirector.

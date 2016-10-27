@@ -31,11 +31,15 @@ class MissingPageRouter
     {
         $redirects = $this->redirector->getRedirectsFor($request);
 
-        collect($redirects)->each(function ($redirectUrl, $missingUrl) {
-            $this->router->get($missingUrl, function () use ($redirectUrl) {
-                $redirectUrl = $this->resolveRouterParameters($redirectUrl);
+        collect($redirects)->each(function ($redirects, $missingUrl) {
 
-                return redirect()->to($redirectUrl, Response::HTTP_MOVED_PERMANENTLY);
+            $this->router->get($missingUrl, function () use ($redirects) {
+
+                return redirect()->to(
+                    $this->getRedirectUrlFromRedirects($redirects),
+                    $this->getStatusCodeFromRedirects($redirects)
+                );
+
             });
         });
 
@@ -46,12 +50,33 @@ class MissingPageRouter
         }
     }
 
+    protected function getRedirectUrlFromRedirects($redirects): string
+    {
+        if (is_array($redirects)) {
+            return $this->resolveRouterParameters($redirects[0]);
+        }
+
+        return $this->resolveRouterParameters($redirects);
+    }
+
+    protected function getStatusCodeFromRedirects($redirects): int
+    {
+        return is_array($redirects) ? $redirects[1] : Response::HTTP_MOVED_PERMANENTLY;
+    }
+
     protected function resolveRouterParameters(string $redirectUrl): string
     {
         foreach ($this->router->getCurrentRoute()->parameters() as $key => $value) {
             $redirectUrl = str_replace("{{$key}}", $value, $redirectUrl);
         }
 
-        return $redirectUrl;
+        return $redirectUrl . $this->appendQueryStringToUrl();
+    }
+
+    protected function appendQueryStringToUrl(): string
+    {
+        $queryString = $this->router->getCurrentRequest()->getQueryString();
+
+        return ($queryString ? '?' . $queryString : '');
     }
 }

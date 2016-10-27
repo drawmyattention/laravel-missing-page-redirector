@@ -68,6 +68,19 @@ class RedirectsMissingPagesTest extends TestCase
     }
 
     /** @test */
+    public function it_can_optionally_set_the_redirect_status_code()
+    {
+        $this->app['config']->set('laravel-missing-page-redirector.redirects', [
+            '/temporarily-moved' => ['/just-for-now', 302],
+        ]);
+
+        $this->get('/temporarily-moved');
+
+        $this->assertRedirectedTo('/just-for-now');
+        $this->assertResponseStatus(302);
+    }
+
+    /** @test */
     public function it_can_use_optional_parameters()
     {
         $this->app['config']->set('laravel-missing-page-redirector.redirects', [
@@ -85,6 +98,27 @@ class RedirectsMissingPagesTest extends TestCase
         $this->get('/old-segment/old-segment2/old-segment3');
 
         $this->assertRedirectedTo('/new-segment');
+    }
+
+    /** @test */
+    public function it_automatically_appends_existing_query_strings_when_redirecting()
+    {
+        $this->app['config']->set('laravel-missing-page-redirector.redirects', [
+            '/old-page' => '/new-page',
+        ]);
+
+        $this->get('/old-page?param=1');
+
+        $this->assertRedirectedTo('/new-page?param=1');
+
+        $this->get('/old-page?param=1&param2=2');
+
+        $this->assertRedirectedTo('/new-page?param=1&param2=2');
+
+        $this->get('/old-page?param=1&param2=2&param3=3');
+
+        $this->assertRedirectedTo('/new-page?param=1&param2=2&param3=3');
+
     }
 
     /** @test */
